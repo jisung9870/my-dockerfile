@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  namenode:
+    image: hadoop:3.2.4-namenode
+    ports:
+      - 9870:9870
+      - 9000:9000
+    volumes:
+      - namenode:/opt/hadoop/dfs/name
+
+  datanode01:
+    image: hadoop:3.2.4-datanode
+    ports:
+      - 9864:9864 
+      - 9856:9866
+    volumes:
+      - datanode01:/opt/hadoop/dfs/data
+    depends_on:
+      - namenode
+
+volumes:
+  namenode:
+  datanode01:
