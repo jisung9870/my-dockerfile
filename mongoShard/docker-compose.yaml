@@ -1,0 +1,81 @@
+version: "3.1"
+
+services:
+    mongoConfig1:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd1/mongoConfig1:/data/db
+        networks:
+            - mongo-networks
+        command: mongod --configsvr --replSet cfgrs --port 27017 --dbpath /data/db
+    mongoConfig2:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd2/mongoConfig2:/data/db
+        networks:
+            - mongo-networks
+        command: mongod --configsvr --replSet cfgrs --port 27017 --dbpath /data/db
+    mongoConfig3:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd3/mongoConfig3:/data/db
+        networks:
+            - mongo-networks
+        command: mongod --configsvr --replSet cfgrs --port 27017 --dbpath /data/db
+    mongo1:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd1/mongo1:/data/db
+        networks:
+            - mongo-networks
+        command: mongod --shardsvr --replSet shardRs1 --port 27017 --dbpath /data/db
+    mongo2:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd2/mongo2:/data/db
+        networks:
+            - mongo-networks
+        command: mongod --shardsvr --replSet shardRs2 --port 27017 --dbpath /data/db
+    mongo3:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd3/mongo3:/data/db
+        networks:
+            - mongo-networks
+        command: mongod --shardsvr --replSet shardRs3 --port 27017 --dbpath /data/db
+    mongos:
+        image: mongo:3.6.17
+        restart: always
+        volumes:
+            - /hdd1/mongos:/data/db
+        networks:
+            - mongo-networks
+        command: mongos --configdb cfgrs/mongoConfig1:27017,mongoConfig2:27017,mongoConfig3:27017 --bind_ip 0.0.0.0 --port 27017
+    mongoRepSetup:
+        image: wltjd9870/mongo-setup:rep
+        networks:
+            - mongo-networks
+        depends_on:
+            - mongoConfig1
+            - mongoConfig2
+            - mongoConfig3
+            - mongo1
+            - mongo2
+            - mongo3
+    mongoSetup:
+        image: wltjd9870/mongo-setup:shard
+        networks:
+            - mongo-networks
+        depends_on:
+            - mongoRepSetup
+            - mongos
+
+networks:
+    mongo-networks:
+        driver: bridge
